@@ -7,7 +7,11 @@ bash benchmarking/update-results.sh    # build-results.py + include-graph.py
 ```
 
 `run-dist-collect.sh` runs this automatically. Run it by hand after adding, moving or
-removing a `results-dist-<code>.xlsx` in a date folder. The file
+removing a `results-dist-<code>.xlsx` in a date folder.
+
+`results.duckdb` is not tracked by git (it is rebuilt from the spreadsheets). After a fresh
+clone, run `bash benchmarking/update-results.sh` once to create it. `runs.csv`, `sources.csv`
+and `summary.json` are tracked. The file
 name decides the experiment: `results-dist-dc-l3.xlsx` -> experiment `dc`, variant `l3`;
 a subfolder (e.g. `20260512/prelim/`) also becomes part of the variant.
 

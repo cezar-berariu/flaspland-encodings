@@ -26,6 +26,7 @@
 
 If you add, move or delete a `results-dist-*.xlsx` by hand, run `bash update-results.sh` to bring the database back in sync.
 The database is always rebuilt from all spreadsheets, so running it again is safe.
+`results.duckdb` is not tracked by git: after a fresh clone, run `bash update-results.sh` once to create it.
 Local runs (`run-local.sh`, `results-*-local.xlsx`) are not loaded into the database.
 
 ## Install the `btool`
