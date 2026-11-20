@@ -1,5 +1,19 @@
 # Benchmarking flaspland environments
 
+## Layout
+
+| folder | contents |
+|---|---|
+| `experiments/` | only the experiment definitions: `exp-<code>.lp` (which encodings to combine) and `README.md` (what each code means) |
+| `analysis/<YYYYMMDD>/` | everything a benchmark run produced on that date: `results-dist-*.xlsx`, raw `output-*` folders, derived CSVs |
+| `analysis/results/` | `build-results.py` collects all `analysis/<YYYYMMDD>/**/results-dist-*.xlsx` into `results.duckdb` / CSV (see its README) |
+| `analysis/include-graph.py` | builds `analysis/include-graph.html` (experiments → encodings, with results) |
+| `analysis/*.R` | R analysis scripts and their outputs |
+| `envs/` | benchmark instances, plus the scripts that generate and sample them |
+| `zesty/` | runscripts and solver binaries used by `run-local.sh` / `run-dist-*.sh` |
+
+After a run, move the generated `results-*.xlsx` into `analysis/<YYYYMMDD>/`.
+
 ## Install the `btool`
 
 Follow the instructions for setting up the [benchmarking tool](https://github.com/potassco/benchmark-tool/tree/master).

@@ -5,7 +5,7 @@ library(readxl)
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-path  <- file.path("~/git/flaspland-encodings/benchmarking/analylsis/averages.xlsx")
+path  <- file.path("~/git/flaspland-encodings/benchmarking/analysis/averages.xlsx")
 raw   <- read_excel(path, sheet = "tall")
 
 # ── Line charts ───────────────────────────────────────────────────────────────

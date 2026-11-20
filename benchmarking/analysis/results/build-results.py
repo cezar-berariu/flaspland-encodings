@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Collect btool result spreadsheets into one queryable results database.
 
-Scans benchmarking/experiments/<date>/**/results-dist-*.xlsx, reads the raw
+Scans benchmarking/analysis/<YYYYMMDD>/**/results-dist-*.xlsx, reads the raw
 per-instance block of the "Instances" sheet, and writes:
 
     results/runs.csv        one row per (source spreadsheet, instance)
@@ -9,7 +9,7 @@ per-instance block of the "Instances" sheet, and writes:
     results/results.duckdb  tables `runs`, `sources`, plus views (see schema.sql)
     results/summary.json    per-source x trains aggregates for include-graph.html
 
-Usage:  python3 benchmarking/results/build-results.py
+Usage:  python3 benchmarking/analysis/results/build-results.py
 Needs:  openpyxl (python), duckdb CLI on PATH (skips the .duckdb step if missing).
 """
 
@@ -22,8 +22,9 @@ from pathlib import Path
 
 import openpyxl
 
-HERE = Path(__file__).resolve().parent
-BENCH = HERE.parent
+HERE = Path(__file__).resolve().parent  # benchmarking/analysis/results
+ANALYSIS = HERE.parent
+BENCH = ANALYSIS.parent
 EXPS = BENCH / "experiments"
 
 MEASURES = ["choices", "conflicts", "constraints", "error", "mem", "memout", "models",
@@ -88,8 +89,10 @@ def read_sheet(path):
 def main():
     codes = experiment_codes()
     runs, sources = [], []
-    for path in sorted(EXPS.glob("20*/**/results-dist-*.xlsx")):
-        relp = path.relative_to(EXPS)
+    for path in sorted(ANALYSIS.glob("*/**/results-dist-*.xlsx")):
+        relp = path.relative_to(ANALYSIS)
+        if not re.fullmatch(r"\d{8}", relp.parts[0]):  # only YYYYMMDD date folders
+            continue
         date = relp.parts[0]
         sub = list(relp.parts[1:-1])  # e.g. ['prelim']
         exp, variant = split_code(path.stem[len("results-dist-"):], codes)
@@ -108,7 +111,7 @@ def main():
             runs.append([source, exp, variant, date, system, name, level, trains, *vals])
         sources.append({
             "source": source, "experiment": exp, "variant": variant, "date": date,
-            "system": system, "file": (BENCH / "experiments" / relp).relative_to(BENCH).as_posix(),
+            "system": system, "file": path.relative_to(BENCH).as_posix(),
             "n_instances": len(rows) - len(skipped), "timeout_limit": max(limits) if limits else None,
         })
         print(f"  {source:32s} {exp:8s} {variant or '-':10s} {len(rows) - len(skipped):4d} rows  {system}"

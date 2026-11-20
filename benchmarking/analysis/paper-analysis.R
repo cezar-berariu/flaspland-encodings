@@ -8,7 +8,7 @@ library(purrr)
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 BASE_PATH   <- "~/git/flaspland-encodings/benchmarking/"
-FILE_PREFIX <- "experiments/2026-10-01/"
+FILE_PREFIX <- "analysis/20261001/"
 SUFFIXES    <- c("results-dist-mapfsub")
 
 TRAINS_COL_IDX  <- 1

@@ -1,9 +1,9 @@
--- Loaded by build-results.py (run from benchmarking/results/).
+-- Loaded by build-results.py (run from benchmarking/analysis/results/).
 
-CREATE TABLE sources AS SELECT * FROM read_csv('sources.csv', header = true);
+CREATE TABLE sources AS SELECT * FROM read_csv('sources.csv', header = true, types = {'date': 'VARCHAR'});
 
 CREATE TABLE runs AS SELECT * FROM read_csv('runs.csv', header = true, types = {
-  'variant': 'VARCHAR', 'level': 'INTEGER', 'trains': 'INTEGER',
+  'date': 'VARCHAR', 'variant': 'VARCHAR', 'level': 'INTEGER', 'trains': 'INTEGER',
   'choices': 'BIGINT', 'conflicts': 'BIGINT', 'constraints': 'BIGINT', 'error': 'INTEGER',
   'mem': 'DOUBLE', 'memout': 'INTEGER', 'models': 'INTEGER', 'overall_time': 'DOUBLE',
   'par2': 'DOUBLE', 'restarts': 'BIGINT', 'rstatus': 'VARCHAR', 'rules': 'BIGINT',
@@ -11,6 +11,9 @@ CREATE TABLE runs AS SELECT * FROM read_csv('runs.csv', header = true, types = {
   'variables': 'BIGINT'});
 UPDATE runs SET variant = '' WHERE variant IS NULL;
 UPDATE sources SET variant = '' WHERE variant IS NULL;
+-- Date folders are named YYYYMMDD.
+ALTER TABLE runs ALTER date TYPE DATE USING strptime(date, '%Y%m%d');
+ALTER TABLE sources ALTER date TYPE DATE USING strptime(date, '%Y%m%d');
 
 -- `runs` plus derived columns. Use this for ad-hoc queries.
 CREATE VIEW results AS

@@ -1,17 +1,17 @@
 # Benchmark results database
 
-All `experiments/<date>/**/results-dist-*.xlsx` spreadsheets, collected into one place.
+All `analysis/<YYYYMMDD>/**/results-dist-*.xlsx` spreadsheets, collected into one place.
 
 ```
-python3 benchmarking/results/build-results.py        # xlsx -> runs.csv, sources.csv, results.duckdb, summary.json
-python3 benchmarking/experiments/include-graph.py    # re-embed summary.json into include-graph.html
+python3 benchmarking/analysis/results/build-results.py   # xlsx -> runs.csv, sources.csv, results.duckdb, summary.json
+python3 benchmarking/analysis/include-graph.py          # re-embed summary.json into include-graph.html
 ```
 
 Re-run both after dropping a new `results-dist-<code>.xlsx` into a date folder. The file
 name decides the experiment: `results-dist-dc-l3.xlsx` -> experiment `dc`, variant `l3`;
-a subfolder (e.g. `2026-05-12/prelim/`) also becomes part of the variant.
+a subfolder (e.g. `20260512/prelim/`) also becomes part of the variant.
 
-## Tables and views (`duckdb benchmarking/results/results.duckdb`)
+## Tables and views (`duckdb benchmarking/analysis/results/results.duckdb`)
 
 | name | what |
 |---|---|
