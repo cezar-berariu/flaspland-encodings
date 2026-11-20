@@ -1,5 +1,7 @@
-# collect-dist.sh
 #!/bin/bash
+# run-dist-collect.sh <name>
+# Collects the results of `run-dist-submit.sh <name>` into analysis/<YYYYMMDD>/.
+# Set RESULTS_DATE=YYYYMMDD to file the results under a different date (e.g. the submit date).
 set -euo pipefail
 
 # Fail if jobs are still running
@@ -9,7 +11,16 @@ if squeue -u "$USER" -h | grep -q .; then
     exit 1
 fi
 
-btool eval ./runscripts/runscript-$1-dist.xml | \
-    btool conv -m all -o results-dist-$1.xlsx
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUT_DIR="${SCRIPT_DIR}/analysis/${RESULTS_DATE:-$(date +%Y%m%d)}"
+OUT="${OUT_DIR}/results-dist-$1.xlsx"
+if [[ -e "$OUT" ]]; then
+    echo "Error: $OUT already exists. Move it away or set RESULTS_DATE." >&2
+    exit 1
+fi
+mkdir -p "$OUT_DIR"
 
-echo "Results saved to results-dist-$1.xlsx"
+btool eval ./runscripts/runscript-$1-dist.xml | \
+    btool conv -m all -o "$OUT"
+
+echo "Results saved to ${OUT#"$SCRIPT_DIR"/}"

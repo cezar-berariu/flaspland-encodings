@@ -12,7 +12,7 @@
 | `envs/` | benchmark instances, plus the scripts that generate and sample them |
 | `zesty/` | runscripts and solver binaries used by `run-local.sh` / `run-dist-*.sh` |
 
-After a run, move the generated `results-*.xlsx` into `analysis/<YYYYMMDD>/`.
+`run-dist-collect.sh <name>` and `run-local.sh <name>` write their `results-*.xlsx` straight into `analysis/<YYYYMMDD>/` (today's date; override with `RESULTS_DATE=YYYYMMDD`). They refuse to overwrite an existing file.
 
 ## Install the `btool`
 
