@@ -3,11 +3,11 @@
 All `analysis/<YYYYMMDD>/**/results-dist-*.xlsx` spreadsheets, collected into one place.
 
 ```
-python3 benchmarking/analysis/results/build-results.py   # xlsx -> runs.csv, sources.csv, results.duckdb, summary.json
-python3 benchmarking/analysis/include-graph.py          # re-embed summary.json into include-graph.html
+bash benchmarking/update-results.sh    # build-results.py + include-graph.py
 ```
 
-Re-run both after dropping a new `results-dist-<code>.xlsx` into a date folder. The file
+`run-dist-collect.sh` runs this automatically. Run it by hand after adding, moving or
+removing a `results-dist-<code>.xlsx` in a date folder. The file
 name decides the experiment: `results-dist-dc-l3.xlsx` -> experiment `dc`, variant `l3`;
 a subfolder (e.g. `20260512/prelim/`) also becomes part of the variant.
 

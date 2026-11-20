@@ -9,10 +9,16 @@ per-instance block of the "Instances" sheet, and writes:
     results/results.duckdb  tables `runs`, `sources`, plus views (see schema.sql)
     results/summary.json    per-source x trains aggregates for include-graph.html
 
-Usage:  python3 benchmarking/analysis/results/build-results.py
-Needs:  openpyxl (python), duckdb CLI on PATH (skips the .duckdb step if missing).
+Always rebuilds everything from the spreadsheets, so re-running is safe. The new
+database is built next to the old one and only swapped in when the build succeeds.
+
+Usage:  python3 benchmarking/analysis/results/build-results.py [--expect XLSX ...]
+        --expect  fail unless XLSX was loaded with at least one instance row
+                  (used by run-dist-collect.sh to check a freshly collected file)
+Needs:  openpyxl (python), duckdb CLI on PATH.
 """
 
+import argparse
 import csv
 import re
 import shutil
@@ -87,6 +93,14 @@ def read_sheet(path):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--expect", action="append", default=[], metavar="XLSX",
+                    help="fail unless this spreadsheet was loaded with >= 1 instance row")
+    args = ap.parse_args()
+    duck = shutil.which("duckdb")
+    if not duck:
+        sys.exit("error: duckdb CLI not found on PATH; results.duckdb was NOT updated")
+
     codes = experiment_codes()
     runs, sources = [], []
     for path in sorted(ANALYSIS.glob("*/**/results-dist-*.xlsx")):
@@ -98,7 +112,10 @@ def main():
         exp, variant = split_code(path.stem[len("results-dist-"):], codes)
         variant = "-".join([*sub, variant] if variant else sub)
         source = "/".join([date, *sub, path.stem[len("results-dist-"):]])
-        system, rows = read_sheet(path)
+        try:
+            system, rows = read_sheet(path)
+        except Exception as e:
+            sys.exit(f"error: cannot read {path.relative_to(BENCH)}: {e!r}; results.duckdb was NOT updated")
         limits, skipped = set(), []
         for name, vals in rows:
             level, trains = parse_instance(name)
@@ -127,21 +144,38 @@ def main():
         w.writerows(sources)
     print(f"wrote runs.csv ({len(runs)} rows), sources.csv ({len(sources)} sources)")
 
-    duck = shutil.which("duckdb")
-    if not duck:
-        print("duckdb CLI not found; skipping results.duckdb and summary.json", file=sys.stderr)
-        return
-    db = HERE / "results.duckdb"
-    db.unlink(missing_ok=True)
+    # Build into temporary files and swap them in only if everything succeeded,
+    # so a failed build never leaves a missing or half-written database.
+    db, tmp_db = HERE / "results.duckdb", HERE / "results.duckdb.tmp"
+    summ, tmp_summ = HERE / "summary.json", HERE / "summary.json.tmp"
+    tmp_db.unlink(missing_ok=True)
+    tmp_summ.unlink(missing_ok=True)
     sql = (HERE / "schema.sql").read_text()
     # Per-experiment views: exp_ce, exp_dc_ef, ...
     for code in sorted({s["experiment"] for s in sources}):
         name = "exp_" + re.sub(r"\W", "_", code)
         sql += f"\nCREATE VIEW {name} AS SELECT * FROM results WHERE experiment = '{code}';"
     sql += "\nCOPY (SELECT * FROM summary_by_trains ORDER BY source, trains) " \
-           "TO 'summary.json' (FORMAT json, ARRAY true);\n"
-    subprocess.run([duck, "-no-agent", str(db)], input=sql, text=True, cwd=HERE, check=True)
+           f"TO '{tmp_summ.name}' (FORMAT json, ARRAY true);\n"
+    try:
+        subprocess.run([duck, "-no-agent", "-bail", str(tmp_db)], input=sql, text=True,
+                       cwd=HERE, check=True)
+    except subprocess.CalledProcessError:
+        tmp_db.unlink(missing_ok=True)
+        tmp_summ.unlink(missing_ok=True)
+        sys.exit("error: duckdb build failed; results.duckdb was NOT updated")
+    tmp_db.replace(db)
+    tmp_summ.replace(summ)
     print("wrote results.duckdb, summary.json")
+
+    loaded = {s["file"]: s["n_instances"] for s in sources}
+    bad = []
+    for x in args.expect:
+        rel = Path(x).resolve().relative_to(BENCH).as_posix()
+        if loaded.get(rel, 0) < 1:
+            bad.append(f"{rel} ({'no instance rows' if rel in loaded else 'not found'})")
+    if bad:
+        sys.exit("error: expected results missing from the database: " + ", ".join(bad))
 
 
 if __name__ == "__main__":
