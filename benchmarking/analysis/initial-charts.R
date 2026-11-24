@@ -10,7 +10,7 @@ library(tidyr)
 # ── Configuration ────────────────────────────────────────────────────────────
 
 BASE_PATH   <- "~/git/flaspland-encodings/benchmarking/"
-FILE_PREFIX <- "results-dist-"
+FILE_PREFIX <- "analysis/20260429/results-dist-"
 SUFFIXES    <- c("ba", "ma", "de", "ds", "dh", "me", "ms", "mh")   # extend as needed
 
 # Column positions (adjust if structure shifts)

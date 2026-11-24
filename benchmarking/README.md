@@ -1,5 +1,34 @@
 # Benchmarking flaspland environments
 
+## Layout
+
+| folder | contents |
+|---|---|
+| `experiments/` | only the experiment definitions: `exp-<code>.lp` (which encodings to combine) and `README.md` (what each code means) |
+| `analysis/<YYYYMMDD>/` | everything a benchmark run produced on that date: `results-dist-*.xlsx`, raw `output-*` folders, derived CSVs |
+| `analysis/results/` | `build-results.py` collects all `analysis/<YYYYMMDD>/**/results-dist-*.xlsx` into `results.duckdb` / CSV (see its README) |
+| `analysis/include-graph.py` | builds `analysis/include-graph.html` (experiments → encodings, with results) |
+| `analysis/*.R` | R analysis scripts and their outputs |
+| `envs/` | benchmark instances, plus the scripts that generate and sample them |
+| `zesty/` | runscripts and solver binaries used by `run-local.sh` / `run-dist-*.sh` |
+
+`run-dist-collect.sh <name>` and `run-local.sh <name>` write their `results-*.xlsx` straight into `analysis/<YYYYMMDD>/` (today's date; override with `RESULTS_DATE=YYYYMMDD`). They refuse to overwrite an existing file.
+
+## Results workflow
+
+1. `bash run-dist-submit.sh <name>` submits the jobs for `zesty/runscript-<name>-dist.xml`.
+2. When `squeue` is empty, `bash run-dist-collect.sh <name>`:
+   - writes `analysis/<YYYYMMDD>/results-dist-<name>.xlsx`,
+   - rebuilds the standing database `analysis/results/results.duckdb` (+ `runs.csv`, `sources.csv`, `summary.json`),
+   - refreshes `analysis/include-graph.html`,
+   - fails if the new spreadsheet did not make it into the database.
+3. Query with `duckdb analysis/results/results.duckdb` (see `analysis/results/README.md`).
+
+If you add, move or delete a `results-dist-*.xlsx` by hand, run `bash update-results.sh` to bring the database back in sync.
+The database is always rebuilt from all spreadsheets, so running it again is safe.
+`results.duckdb` is not tracked by git: after a fresh clone, run `bash update-results.sh` once to create it.
+Local runs (`run-local.sh`, `results-*-local.xlsx`) are not loaded into the database.
+
 ## Install the `btool`
 
 Follow the instructions for setting up the [benchmarking tool](https://github.com/potassco/benchmark-tool/tree/master).

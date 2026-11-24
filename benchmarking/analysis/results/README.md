@@ -1,17 +1,21 @@
 # Benchmark results database
 
-All `experiments/<date>/**/results-dist-*.xlsx` spreadsheets, collected into one place.
+All `analysis/<YYYYMMDD>/**/results-dist-*.xlsx` spreadsheets, collected into one place.
 
 ```
-python3 benchmarking/results/build-results.py        # xlsx -> runs.csv, sources.csv, results.duckdb, summary.json
-python3 benchmarking/experiments/include-graph.py    # re-embed summary.json into include-graph.html
+bash benchmarking/update-results.sh    # build-results.py + include-graph.py
 ```
 
-Re-run both after dropping a new `results-dist-<code>.xlsx` into a date folder. The file
+`run-dist-collect.sh` runs this automatically. Run it by hand after adding, moving or
+removing a `results-dist-<code>.xlsx` in a date folder.
+
+`results.duckdb` is not tracked by git (it is rebuilt from the spreadsheets). After a fresh
+clone, run `bash benchmarking/update-results.sh` once to create it. `runs.csv`, `sources.csv`
+and `summary.json` are tracked. The file
 name decides the experiment: `results-dist-dc-l3.xlsx` -> experiment `dc`, variant `l3`;
-a subfolder (e.g. `2026-05-12/prelim/`) also becomes part of the variant.
+a subfolder (e.g. `20260512/prelim/`) also becomes part of the variant.
 
-## Tables and views (`duckdb benchmarking/results/results.duckdb`)
+## Tables and views (`duckdb benchmarking/analysis/results/results.duckdb`)
 
 | name | what |
 |---|---|

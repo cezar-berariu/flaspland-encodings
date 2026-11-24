@@ -7,3 +7,11 @@ templates/*
 output*/*
 runlim/
 .DS_Store
+resultparsers/
+__pycache__/
+.~lock.*#
+.RData
+.Rhistory
+*.duckdb.tmp
+*.json.tmp
+analysis/results/results.duckdb

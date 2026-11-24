@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build an interactive include-graph of the benchmark experiments.
 
-Parses every `exp-*.lp` in this directory, follows `#include` statements
+Parses every `exp-*.lp` in benchmarking/experiments/, follows `#include` statements
 (transitively, through the encodings), and writes `include-graph.html`
 next to this script. Open that file in a browser.
 
-    python3 benchmarking/experiments/include-graph.py
+    python3 benchmarking/analysis/include-graph.py
 
 Include resolution mirrors clingo: relative to the including file's
 directory first, then relative to the repository root. Includes that
@@ -17,12 +17,13 @@ import json
 import re
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parent  # benchmarking/analysis
 ROOT = HERE.parent.parent
+EXPS = HERE.parent / "experiments"
 ENC = ROOT / "encodings"
 OUT = HERE / "include-graph.html"
 TEMPLATE = HERE / "include-graph.template.html"
-RESULTS = HERE.parent / "results"  # built by results/build-results.py
+RESULTS = HERE / "results"  # built by results/build-results.py
 
 INCLUDE_RE = re.compile(r'^\s*#include\s+"([^"]+)"\s*\.')
 CONST_RE = re.compile(r"^\s*#const\s+(.+?)\.\s*$")
@@ -68,7 +69,7 @@ def resolve(raw: str, from_file: Path):
 def readme_rounds():
     """code -> (round, description, order) from the experiments README."""
     info, rnd, order = {}, None, 0
-    readme = HERE / "README.md"
+    readme = EXPS / "README.md"
     if not readme.exists():
         return info
     for line in readme.read_text().splitlines():
@@ -156,7 +157,7 @@ def main():
 
     rounds = readme_rounds()
     experiments = []
-    for p in sorted(HERE.glob("exp-*.lp")):
+    for p in sorted(EXPS.glob("exp-*.lp")):
         incs, consts, comment = parse(p)
         code = p.stem[len("exp-"):]
         rnd, desc, order = rounds.get(code, ("Not in README", "", 10_000))
